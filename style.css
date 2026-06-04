@@ -84,17 +84,6 @@ nav.tabs::-webkit-scrollbar {
 }
 
 
-@media (min-width: 768px) {
-  nav.tabs {
-    padding: 0 24px;
-    overflow-x: visible; 
-  }
-  .tab {
-    flex: 1; 
-    max-width: 200px;
-    font-size: 15px;
-  }
-}
 /* PAGES */
 .page{display:none}
 .page.active{display:block}
