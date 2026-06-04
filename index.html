@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>うじとうえだ ゆかりの地マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <div class="header-logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+    </div>
+    <div>
+      <div class="logo-text">うじとうえだマップ </div>
+    </div>
+  </div>
+  <div class="header-meta"><span id="spot-count-header">0</span></div>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" onclick="showPage('map-page',this)">🗺 地図</button>
+  <button class="tab" onclick="showPage('spots-page',this)">📍 スポット<span class="tab-badge" id="spots-badge">0</span></button>
+  <button class="tab" onclick="showPage('videos-page',this)">▶ 動画<span class="tab-badge" id="videos-badge">0</span></button>
+  <button class="tab" onclick="showPage('request-page',this)">✉️ フォーム</button>
+  <button class="tab" onclick="showPage('history-page',this)">📋 編集履歴</button>
+  <button class="tab" onclick="showPage('credits-page',this)">💬 クレジット</button>
+</nav>
+
+<div id="map-page" class="page active">
+  <div id="map"></div>
+</div>
+
+<div id="spots-page" class="page">
+  <div class="page-title">スポット一覧</div>
+  <div class="page-subtitle">うじとうえだが訪れた・ゆかりのある場所</div>
+  <div class="filter-bar">
+    <input class="filter-input" type="text" placeholder="スポット名・国名で検索..." id="spot-search" oninput="renderSpots()">
+    <select class="filter-select" id="spot-country-filter" onchange="renderSpots()">
+      <option value="">すべての地域</option>
+    </select>
+  </div>
+  <div class="filter-bar" id="tag-filters" style="margin-top:-6px;margin-bottom:14px"></div>
+  <div class="spots-grid" id="spots-grid"></div>
+</div>
+
+<div id="videos-page" class="page">
+  <div class="page-title">動画一覧</div>
+  <div class="page-subtitle">動画から関連スポットを逆検索</div>
+  <div class="video-filter-bar">
+    <input class="filter-input" type="text" placeholder="動画タイトル・出演者で検索..." id="video-search" oninput="renderVideos()">
+    <select class="filter-select" id="video-person-filter" onchange="renderVideos()">
+      <option value="">全員</option>
+    </select>
+  </div>
+  <div class="videos-list" id="videos-list"></div>
+</div>
+
+<div id="request-page" class="page">
+    <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSdZF1WkcqeC-LAS0aZPO6icawxrPnmfq90nHMRiIIjnaHKfxQ/viewform?embedded=true" width="640" height="669" frameborder="0" marginheight="0" marginwidth="0">読み込んでいます…</iframe>
+</div>
+
+<div id="history-page" class="page">
+  <div class="page-title">更新・編集履歴</div>
+  <div class="page-subtitle" style="margin-bottom:20px">マップの変更履歴</div>
+  <div class="history-list" id="history-list"></div>
+</div>
+
+
+
+<div id="credits-page" class="page">
+  <div class="page-title">クレジット</div>
+  <div class="page-subtitle" style="margin-bottom:24px">このマップについて</div>
+  <div class="credit-section">
+    <div class="credit-section-title">使い方</div>
+        <div class="credit-card">
+        <div class="credit-avatar">💡</div>
+            <div>
+                <div class="credit-name">地図</div>
+                <div class="credit-role">大体の場所を把握するのに使ってください。細かい場所はGoogleMapを使うことをお勧めします。</div>
+                <div class="credit-name">スポット</div>
+                <div class="credit-role">スポット検索です。単語やタグからお探しください。</div>
+                <div class="credit-name">動画</div>
+                <div class="credit-role">対応している動画一覧です。行った場所を動画や出演者ごとに見ることができます。</div>
+                <div class="credit-name">フォーム</div>
+                <div class="credit-role">リクエスト・ミス修正・削除依頼・コンタクト等はこちらからお願いします。</div>
+                <div class="credit-name">編集履歴</div>
+                <div class="credit-role">サイトに対して行った変更・更新の履歴を見れます。</div>
+                <div class="credit-name">クレジット</div>
+                <div class="credit-role">色々な情報・説明が書かれています。</div>
+            </div>
+        </div>
+    <div class="credit-section-title">制作</div>
+        <div class="credit-card">
+        <div class="credit-avatar">🗺</div>
+            <div>
+                <div class="credit-name">うじとうえだファンマップ</div>
+                <div class="credit-role">非公式・非公認・ファン制作</div>
+                <div class="credit-role" style="margin-top:4px;font-size:11px;color:var(--red)">※ 関係者の方がいらっしゃいましたら、フォーム・メールよりご連絡ください。</div>
+            </div>
+        </div>
+  </div>
+  <div class="credit-section">
+    <div class="credit-section-title">情報提供者</div>
+    <div class="credit-card">
+      <div class="credit-avatar">🐏</div>
+      <div>
+        <div class="credit-name">so</div>
+        <div class="credit-role">運営・スポット調査</div>
+        <div class="credit-role">ujitoueda.map@gmail.com</div>
+      </div>
+    </div>
+    <div class="credit-card">
+      <div class="credit-avatar">🙂</div>
+      <div>
+        <div class="credit-name">mkt</div>
+        <div class="credit-role">スポット調査</div>
+      </div>
+    </div>
+  </div>
+  <div class="credit-section">
+    <div class="credit-section-title">使用技術</div>
+    <div class="tech-list">
+      <span class="tech-chip">Leaflet.js</span>
+      <span class="tech-chip">OpenStreetMap</span>
+      <span class="tech-chip">Noto Sans JP</span>
+      <span class="tech-chip">HTML / CSS / JS</span>
+    </div>
+  </div>
+  <div class="credit-section">
+    <div class="credit-section-title">バージョン情報</div>
+    <div class="version-info">
+      バージョン: v1.0.0<br>
+      最終更新: 2026年6月<br>
+      スポット数: <span id="version-spot-count">0</span>件<br>
+      動画数: <span id="version-video-count">0</span>件
+    </div>
+  </div>
+  <div class="credit-section">
+    <div class="credit-section-title">免責事項・注意事項</div>
+    <div style="font-size:12px;color:var(--text3);line-height:1.8">
+      このマップはファンが動画を元に作成した非公式サイトです。情報の正確性は保証しません。訪れる際は、お店の有無・営業時間・定休日等をご確認ください。もし訪れる際は、関係者様に迷惑等をかけないようにお願いします。うじとうえだ本人・所属事務所とは無関係です。削除依頼等はリクエストフォームよりご連絡ください。
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="spot-modal" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-name"></div>
+      <button class="modal-close" onclick="document.getElementById('spot-modal').classList.remove('open')">×</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
